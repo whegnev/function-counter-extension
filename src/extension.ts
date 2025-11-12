@@ -54,6 +54,24 @@ function analyzeCode(text: string, language: string): { functions: number, ifs: 
     };
 }
 
+function showStatsNotification() {
+    const editor = vscode.window.activeTextEditor;
+    
+    if (!editor) {
+        vscode.window.showInformationMessage('No active code file found');
+        return;
+    }
+
+    const text = editor.document.getText();
+    const language = editor.document.languageId;
+    const stats = analyzeCode(text, language);
+
+    vscode.window.showInformationMessage(
+        `Code Statistics: ${stats.functions} functions, ${stats.ifs} if statements, ${stats.loops} loops`
+    );
+}
+
+
 export function activate(context: vscode.ExtensionContext) {
 /**
  Активирует расширение при его загрузке в VS Code, создает статус-бар, 
@@ -65,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
            состоянием расширения и подписки на события
                      
  */
-    console.log('Code Stats Analyzer activated!');
+    console.log('Function Counter Extension activated!');
 
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.show();
@@ -90,10 +108,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 		statusBarItem.text = `[${language}] Функции: ${stats.functions} | If: ${stats.ifs} | Циклы: ${stats.loops}`;
 	};
+let showStatsCommand = vscode.commands.registerCommand('function-counter-extension.showStats', () => {
+        showStatsNotification();
+    });
 
+    // Команда для принудительного обновления статус-бара
+    let refreshStatsCommand = vscode.commands.registerCommand('function-counter-extension.refreshStats', () => {
+        updateStatusBar();
+        vscode.window.showInformationMessage('Code statistics refreshed!');
+    });
+
+    // Подписка на события и добавление команд в контекст
     context.subscriptions.push(
+        statusBarItem,
         vscode.window.onDidChangeActiveTextEditor(updateStatusBar),
-        vscode.workspace.onDidChangeTextDocument(updateStatusBar)
+        vscode.workspace.onDidChangeTextDocument(updateStatusBar),
+        showStatsCommand,          // ✅ добавляем команду
+        refreshStatsCommand        // ✅ добавляем команду
     );
 
     updateStatusBar();
