@@ -139,3 +139,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
+/**
+ * Деактивирует расиширение при закрытии VS Code: удаляет созданные элементы и отписывается от событий
+ */
